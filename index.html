@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>G5B1 · 우리반 통장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF6EC;
+    --paper-deep:#F3ECDB;
+    --line:#DCD3BE;
+    --ink:#1F2A44;
+    --ink-soft:#5B6584;
+    --gold:#C99A2E;
+    --gold-soft:#F1E2B8;
+    --deposit:#2F6B4F;
+    --deposit-soft:#E4EFE8;
+    --withdraw:#A63D40;
+    --withdraw-soft:#F5E4E1;
+    --stamp:#B5342F;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #FFFDF7 0%, var(--paper) 55%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans KR', sans-serif;
+    min-height:100vh;
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:640px; margin:0 auto;}
+
+  /* ---- Header ---- */
+  .brand{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom:22px; padding:0 4px;
+  }
+  .brand h1{
+    font-family:'Gowun Batang', serif;
+    font-size:26px; font-weight:700; margin:0; letter-spacing:-0.5px;
+  }
+  .brand h1 span{color:var(--gold);}
+  .brand p{margin:2px 0 0; font-size:12.5px; color:var(--ink-soft);}
+
+  /* ---- Student tabs ---- */
+  .tabs{
+    display:flex; gap:8px; overflow-x:auto; padding:2px 2px 10px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .tabs::-webkit-scrollbar{height:4px;}
+  .tab{
+    flex:0 0 auto; padding:9px 16px; border-radius:999px;
+    border:1.5px solid var(--line); background:#fff; color:var(--ink-soft);
+    font-family:'Noto Sans KR'; font-weight:500; font-size:14px;
+    cursor:pointer; white-space:nowrap; transition:.15s;
+  }
+  .tab:hover{border-color:var(--gold);}
+  .tab.active{
+    background:var(--ink); color:var(--paper); border-color:var(--ink);
+    font-weight:700;
+  }
+  .tab.add{
+    background:var(--paper-deep); border-style:dashed; color:var(--ink-soft);
+  }
+
+  /* ---- Add student inline form ---- */
+  .add-form{
+    display:none; gap:8px; margin:-4px 0 16px; padding:12px;
+    background:#fff; border:1.5px dashed var(--line); border-radius:14px;
+  }
+  .add-form.open{display:flex;}
+  .add-form input{flex:1;}
+  .add-form button{flex:0 0 auto;}
+
+  /* ---- Passbook card ---- */
+  .book{
+    background:#fff;
+    border-radius:20px;
+    border:1px solid var(--line);
+    box-shadow: 0 1px 0 #fff inset, 0 18px 40px -24px rgba(31,42,68,.35);
+    overflow:hidden;
+    position:relative;
+  }
+  .book::before{
+    content:"";
+    position:absolute; left:0; top:0; bottom:0; width:14px;
+    background:repeating-linear-gradient(
+      to bottom, var(--gold) 0 3px, transparent 3px 11px
+    );
+    opacity:.55;
+  }
+  .book-inner{padding:26px 26px 8px 34px;}
+
+  .account-line{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:18px;
+  }
+  .account-line .who{font-size:14px; color:var(--ink-soft);}
+  .account-line .who b{color:var(--ink); font-size:16px;}
+  .account-line .balance{text-align:right;}
+  .account-line .balance .num{
+    font-family:'Gowun Batang', serif; font-size:34px; font-weight:700;
+    line-height:1;
+  }
+  .account-line .balance .num.negative{color:var(--withdraw);}
+  .account-line .balance .lbl{font-size:11.5px; color:var(--ink-soft); letter-spacing:.5px;}
+
+  /* ---- Controls ---- */
+  .controls{margin-bottom:22px;}
+  .row{display:flex; gap:8px; margin-bottom:8px;}
+  input[type=number], input[type=text]{
+    width:100%; padding:12px 14px; border-radius:10px;
+    border:1.5px solid var(--line); font-size:15px; font-family:'Noto Sans KR';
+    background:var(--paper); color:var(--ink);
+  }
+  input:focus{outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold);}
+  .actions{display:flex; gap:10px;}
+  .btn{
+    flex:1; padding:13px 10px; border-radius:12px; border:none;
+    font-family:'Noto Sans KR'; font-weight:700; font-size:15px;
+    cursor:pointer; transition:.15s; position:relative;
+  }
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .btn.deposit{background:var(--deposit-soft); color:var(--deposit);}
+  .btn.deposit:hover:not(:disabled){background:var(--deposit); color:#fff;}
+  .btn.withdraw{background:var(--withdraw-soft); color:var(--withdraw);}
+  .btn.withdraw:hover:not(:disabled){background:var(--withdraw); color:#fff;}
+  .btn.small{
+    padding:9px 14px; border-radius:10px; background:var(--ink); color:var(--paper);
+    font-size:13.5px; flex:none;
+  }
+  .error-msg{
+    font-size:13px; color:var(--withdraw); margin:2px 2px 4px; min-height:16px;
+  }
+
+  /* ---- Ledger ---- */
+  .ledger-head{
+    display:grid; grid-template-columns: 88px 1fr 74px 74px 84px;
+    font-size:11.5px; color:var(--ink-soft); font-weight:700;
+    padding:0 0 8px; border-bottom:1px solid var(--line); letter-spacing:.3px;
+  }
+  .ledger{max-height:340px; overflow-y:auto; margin-bottom:6px;}
+  .ledger-row{
+    display:grid; grid-template-columns: 88px 1fr 74px 74px 84px;
+    align-items:center; padding:11px 0; border-bottom:1px dashed var(--line);
+    font-size:13px; position:relative;
+  }
+  .ledger-row .date{color:var(--ink-soft); font-size:11.5px;}
+  .ledger-row .memo{color:var(--ink); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .ledger-row .in{color:var(--deposit); font-weight:700; text-align:right;}
+  .ledger-row .out{color:var(--withdraw); font-weight:700; text-align:right;}
+  .ledger-row .after{text-align:right; font-weight:700; color:var(--ink);}
+
+  .empty{
+    text-align:center; padding:36px 10px; color:var(--ink-soft); font-size:13.5px;
+  }
+  .empty b{display:block; font-family:'Gowun Batang',serif; font-size:17px; color:var(--ink); margin-bottom:6px; font-weight:700;}
+
+  /* ---- Stamp signature moment ---- */
+  .stamp{
+    position:absolute; right:6px; top:50%;
+    width:34px; height:34px; border-radius:50%;
+    border:2.5px solid var(--stamp); color:var(--stamp);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Gowun Batang',serif; font-weight:700; font-size:11px;
+    transform:translateY(-50%) scale(2.2) rotate(-18deg);
+    opacity:0; pointer-events:none;
+    animation: stampDown .6s cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  @keyframes stampDown{
+    0%{ transform:translateY(-50%) scale(2.4) rotate(-18deg); opacity:0; }
+    55%{ transform:translateY(-50%) scale(0.85) rotate(-10deg); opacity:1; }
+    75%{ transform:translateY(-50%) scale(1.05) rotate(-12deg); opacity:1; }
+    100%{ transform:translateY(-50%) scale(1) rotate(-12deg); opacity:.9; }
+  }
+
+  .footnote{
+    text-align:center; font-size:11.5px; color:var(--ink-soft); margin-top:16px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .stamp{ animation:none; opacity:.9; transform:translateY(-50%) scale(1) rotate(-12deg); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div>
+      <h1>G5B1 <span>통장</span></h1>
+      <p>심으로 배우는 우리 반 경제생활</p>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="add-form" id="addForm">
+    <input type="text" id="newStudentName" placeholder="학생 이름 입력" maxlength="10" />
+    <button class="btn small" id="confirmAdd">추가</button>
+  </div>
+
+  <div class="book" id="book" style="display:none;">
+    <div class="book-inner">
+      <div class="account-line">
+        <div class="who">계좌주 <b id="whoName">-</b></div>
+        <div class="balance">
+          <div class="num" id="balanceNum">0</div>
+          <div class="lbl">현재 잔액 (심)</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <input type="number" id="amount" placeholder="금액 입력" min="1" />
+          <input type="text" id="memo" placeholder="내용 (예: 이번 주 월급)" maxlength="20" />
+        </div>
+        <div class="error-msg" id="errMsg"></div>
+        <div class="actions">
+          <button class="btn deposit" id="btnDeposit">입금하기</button>
+          <button class="btn withdraw" id="btnWithdraw">출금하기</button>
+        </div>
+      </div>
+
+      <div class="ledger-head">
+        <div>날짜</div><div>내용</div><div style="text-align:right;">입금</div><div style="text-align:right;">출금</div><div style="text-align:right;">잔액</div>
+      </div>
+      <div class="ledger" id="ledger"></div>
+    </div>
+  </div>
+
+  <div class="book" id="emptyBook">
+    <div class="empty">
+      <b>아직 등록된 학생이 없어요</b>
+      위에서 학생을 추가하면 통장이 만들어져요.
+    </div>
+  </div>
+
+  <div class="footnote">G5B1 · 첫 번째 기능 : 심 입출금 통장</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, addDoc, onSnapshot,
+  runTransaction, query, where, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBav2WgTlOnL1ukxebE2JCLla135cVUx4o",
+  authDomain: "training-92e1a.firebaseapp.com",
+  projectId: "training-92e1a",
+  storageBucket: "training-92e1a.firebasestorage.app",
+  messagingSenderId: "923998502256",
+  appId: "1:923998502256:web:bf0e33ae94b55d26bbe3b5",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const studentsCol = collection(db, "g5b1_students");
+const txCol = collection(db, "g5b1_transactions");
+
+let students = [];
+let selectedId = null;
+let unsubTx = null;
+
+const tabsEl = document.getElementById("tabs");
+const bookEl = document.getElementById("book");
+const emptyBookEl = document.getElementById("emptyBook");
+const whoNameEl = document.getElementById("whoName");
+const balanceNumEl = document.getElementById("balanceNum");
+const ledgerEl = document.getElementById("ledger");
+const errMsgEl = document.getElementById("errMsg");
+const addForm = document.getElementById("addForm");
+const newStudentNameInput = document.getElementById("newStudentName");
+
+function formatNum(n){ return n.toLocaleString("ko-KR"); }
+function formatDate(ts){
+  if(!ts) return "-";
+  const d = ts.toDate ? ts.toDate() : new Date();
+  return `${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function renderTabs(){
+  tabsEl.innerHTML = "";
+  students.forEach(s=>{
+    const b = document.createElement("button");
+    b.className = "tab" + (s.id===selectedId ? " active" : "");
+    b.textContent = s.name;
+    b.onclick = ()=> selectStudent(s.id);
+    tabsEl.appendChild(b);
+  });
+  const addBtn = document.createElement("button");
+  addBtn.className = "tab add";
+  addBtn.textContent = "+ 학생 추가";
+  addBtn.onclick = ()=>{
+    addForm.classList.toggle("open");
+    if(addForm.classList.contains("open")) newStudentNameInput.focus();
+  };
+  tabsEl.appendChild(addBtn);
+}
+
+document.getElementById("confirmAdd").onclick = async ()=>{
+  const name = newStudentNameInput.value.trim();
+  if(!name) return;
+  const docRef = await addDoc(studentsCol, { name, balance:0, createdAt: serverTimestamp() });
+  newStudentNameInput.value = "";
+  addForm.classList.remove("open");
+  selectStudent(docRef.id);
+};
+newStudentNameInput.addEventListener("keydown", e=>{
+  if(e.key==="Enter") document.getElementById("confirmAdd").click();
+});
+
+function selectStudent(id){
+  selectedId = id;
+  renderTabs();
+  const s = students.find(x=>x.id===id);
+  if(!s) return;
+  bookEl.style.display = "block";
+  emptyBookEl.style.display = "none";
+  whoNameEl.textContent = s.name;
+  updateBalanceDisplay(s.balance);
+  listenTransactions(id);
+}
+
+function updateBalanceDisplay(balance){
+  balanceNumEl.textContent = formatNum(balance) + " 심";
+  balanceNumEl.classList.toggle("negative", balance < 0);
+}
+
+function listenTransactions(studentId){
+  if(unsubTx) unsubTx();
+  const q = query(txCol, where("studentId","==", studentId));
+  unsubTx = onSnapshot(q, snap=>{
+    let rows = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    rows.sort((a,b)=>{
+      const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
+    renderLedger(rows);
+  });
+}
+
+function renderLedger(rows){
+  ledgerEl.innerHTML = "";
+  if(rows.length===0){
+    ledgerEl.innerHTML = `<div class="empty"><b>첫 거래를 기다리고 있어요</b>입금 또는 출금을 해보세요.</div>`;
+    return;
+  }
+  rows.forEach((r, idx)=>{
+    const row = document.createElement("div");
+    row.className = "ledger-row";
+    row.innerHTML = `
+      <div class="date">${formatDate(r.createdAt)}</div>
+      <div class="memo">${escapeHtml(r.memo || (r.type==="deposit" ? "입금" : "출금"))}</div>
+      <div class="in">${r.type==="deposit" ? formatNum(r.amount) : ""}</div>
+      <div class="out">${r.type==="withdraw" ? formatNum(r.amount) : ""}</div>
+      <div class="after">${formatNum(r.balanceAfter)}</div>
+    `;
+    if(idx===0 && r._justAdded){
+      const stamp = document.createElement("div");
+      stamp.className = "stamp";
+      stamp.textContent = r.type==="deposit" ? "입금필" : "출금필";
+      row.appendChild(stamp);
+    }
+    ledgerEl.appendChild(row);
+  });
+}
+
+let lastAddedId = null;
+async function submitTx(type){
+  errMsgEl.textContent = "";
+  const amountInput = document.getElementById("amount");
+  const memoInput = document.getElementById("memo");
+  const amount = Number(amountInput.value);
+  const memo = memoInput.value.trim();
+
+  if(!selectedId){ errMsgEl.textContent = "학생을 먼저 선택해 주세요."; return; }
+  if(!amount || amount <= 0){ errMsgEl.textContent = "1 이상의 금액을 입력해 주세요."; return; }
+
+  const studentRef = doc(db, "g5b1_students", selectedId);
+  try{
+    let newBalance;
+    await runTransaction(db, async (t)=>{
+      const snap = await t.get(studentRef);
+      const current = snap.data().balance || 0;
+      newBalance = type==="deposit" ? current + amount : current - amount;
+      if(type==="withdraw" && newBalance < 0){
+        throw new Error("잔액보다 많은 금액은 출금할 수 없어요.");
+      }
+      t.update(studentRef, { balance: newBalance });
+    });
+
+    const txRef = await addDoc(txCol, {
+      studentId: selectedId,
+      type,
+      amount,
+      memo,
+      balanceAfter: newBalance,
+      createdAt: serverTimestamp()
+    });
+    lastAddedId = txRef.id;
+
+    amountInput.value = "";
+    memoInput.value = "";
+  }catch(e){
+    errMsgEl.textContent = e.message || "처리 중 오류가 발생했어요.";
+  }
+}
+
+document.getElementById("btnDeposit").onclick = ()=> submitTx("deposit");
+document.getElementById("btnWithdraw").onclick = ()=> submitTx("withdraw");
+
+// mark newly added row for stamp animation
+const origRenderLedger = renderLedger;
+renderLedger = function(rows){
+  if(rows.length && rows[0].id === lastAddedId){
+    rows[0]._justAdded = true;
+    lastAddedId = null;
+  }
+  origRenderLedger(rows);
+};
+
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+onSnapshot(studentsCol, snap=>{
+  students = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+  renderTabs();
+  if(students.length===0){
+    bookEl.style.display = "none";
+    emptyBookEl.style.display = "block";
+    selectedId = null;
+  } else if(!selectedId){
+    selectStudent(students[0].id);
+  } else {
+    const s = students.find(x=>x.id===selectedId);
+    if(s) updateBalanceDisplay(s.balance);
+  }
+});
+</script>
+</body>
+</html>
